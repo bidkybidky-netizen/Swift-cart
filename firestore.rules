@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches Auth UID)
+    // Fields:
+    //   - uid: string (required, immutable) - Firebase Auth UID
+    //   - email: string (required, immutable) - User email
+    //   - displayName: string (optional) - User name
+    //   - referralCode: string (required, immutable) - Unique code
+    //   - totalEarned: number (required) - Rewards in INR
+    //   - referralsCount: number (required) - Count of friends
+    //   - createdAt: timestamp (required, immutable) - Creation time
+    //
+    // Collection: referrals
+    // Document ID: {referralId}
+    // Fields:
+    //   - referrerUid: string (required, immutable) - Who shared code
+    //   - referredUid: string (required, immutable) - Who joined
+    //   - friendName: string (required, immutable) - Name of friend
+    //   - amount: number (required, immutable) - Reward amount
+    //   - status: string (required) - 'pending' or 'completed'
+    //   - timestamp: timestamp (required, immutable) - When occurred
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "bidkybidky@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidUser(data) {
+      return data.uid is string && data.uid.size() > 0 &&
+             data.email is string && data.email.size() > 0 &&
+             data.referralCode is string && data.referralCode.size() >= 5 && data.referralCode.size() <= 20 &&
+             data.totalEarned is number && data.totalEarned >= 0 &&
+             data.referralsCount is number && data.referralsCount >= 0;
+    }
+
+    function isValidReferral(data) {
+      return data.referrerUid is string && data.referrerUid.size() > 0 &&
+             data.referredUid is string && data.referredUid.size() > 0 &&
+             data.friendName is string && data.friendName.size() > 0 && data.friendName.size() < 100 &&
+             data.amount is number && data.amount == 100 &&
+             data.status in ['pending', 'completed'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Allow reading referral codes for searching
+      allow read: if isAuthenticated();
+      
+      allow create: if isOwner(userId) && 
+                      isValidUser(request.resource.data) &&
+                      hasOnlyAllowedFields(['uid', 'email', 'displayName', 'referralCode', 'totalEarned', 'referralsCount', 'createdAt']) &&
+                      request.resource.data.totalEarned == 0 &&
+                      request.resource.data.referralsCount == 0;
+      
+      allow update: if (isOwner(userId) && 
+                        isValidUser(request.resource.data) &&
+                        request.resource.data.uid == resource.data.uid &&
+                        request.resource.data.email == resource.data.email &&
+                        request.resource.data.referralCode == resource.data.referralCode &&
+                        request.resource.data.createdAt == resource.data.createdAt) || 
+                      isAdmin() ||
+                      // Special case: allow referred user to increment referrer's stats
+                      (isAuthenticated() && 
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalEarned', 'referralsCount']) &&
+                       request.resource.data.totalEarned == resource.data.totalEarned + 100 &&
+                       request.resource.data.referralsCount == resource.data.referralsCount + 1 &&
+                       // Verify that a referral document is being created by this user for this referrer
+                       existsAfter(/databases/$(database)/documents/referrals/$(request.auth.uid + '_' + userId)));
+    }
+
+    match /referrals/{referralId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.referrerUid || request.auth.uid == resource.data.referredUid || isAdmin());
+      
+      allow create: if isAuthenticated() && 
+                      request.auth.uid == request.resource.data.referredUid &&
+                      referralId == request.auth.uid + '_' + request.resource.data.referrerUid &&
+                      isValidReferral(request.resource.data) &&
+                      hasOnlyAllowedFields(['referrerUid', 'referredUid', 'friendName', 'amount', 'status', 'timestamp']);
+      
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

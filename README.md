@@ -1,11 +1,43 @@
-<div align="center">
+# 🛒 SwiftKart AI - Premium E-Commerce Platform
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+SwiftKart is a high-performance, modern e-commerce application built with React, Tailwind CSS, and Google's most advanced AI models.
 
-  <h1>Built with AI Studio</h2>
+## 🌟 Key Features
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+### 1. 🎬 AI Video Studio (Powered by Google Veo)
+The most unique feature of this platform. Sellers can generate professional, cinematic video advertisements for their products using AI.
+- **Generate:** Create 5-second cinematic ads from text prompts.
+- **Extend:** Add +7 seconds to existing videos to create full-length commercials.
+- **Pro Quality:** Uses `veo-3.1-fast-generate-preview` for high-end results.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+### 2. 💰 Refer & Earn System
+A built-in viral marketing engine.
+- Users get a unique referral link.
+- Rewards system to encourage sharing.
+- Animated, user-friendly dashboard.
 
-</div>
+### 3. ⚡ Lightning Fast Shopping
+- **Category Browsing:** Easy navigation through Electronics, Fashion, Home, etc.
+- **Smart Search:** Find products instantly.
+- **Real-time Cart:** Smooth add-to-cart experience with price calculations.
+
+## 🛠 Tech Stack
+- **Frontend:** React.js (TypeScript)
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion
+- **AI Integration:** Google GenAI SDK (Gemini & Veo)
+- **Icons:** Lucide React
+
+## 🚀 How to Launch
+1. **Install Dependencies:** `npm install`
+2. **Run Locally:** `npm run dev`
+3. **Build for Production:** `npm run build`
+
+## 💼 Business Potential
+This app is perfect for:
+- **SaaS Owners:** Sell this as a service to small business owners.
+- **Dropshippers:** A premium-looking store that converts better.
+- **Developers:** A high-quality template to jumpstart any e-commerce project.
+
+---
+*Created with ❤️ by SwiftKart Team*

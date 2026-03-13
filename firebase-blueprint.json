@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile and referral information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "referralCode": { "type": "string", "description": "Unique referral code for this user" },
+        "totalEarned": { "type": "number", "description": "Total rewards earned in INR" },
+        "referralsCount": { "type": "number", "description": "Number of successful referrals" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email", "referralCode"]
+    },
+    "Referral": {
+      "title": "Referral Record",
+      "description": "Tracks a referral between two users",
+      "type": "object",
+      "properties": {
+        "referrerUid": { "type": "string", "description": "UID of the user who shared the code" },
+        "referredUid": { "type": "string", "description": "UID of the new user who joined" },
+        "friendName": { "type": "string", "description": "Name of the referred friend" },
+        "amount": { "type": "number", "description": "Reward amount in INR" },
+        "status": { "type": "string", "enum": ["pending", "completed"], "description": "Status of the referral reward" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the referral occurred" }
+      },
+      "required": ["referrerUid", "referredUid", "amount", "status", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and referral stats"
+    },
+    "/referrals/{referralId}": {
+      "schema": "Referral",
+      "description": "History of referral rewards"
+    }
+  }
+}
